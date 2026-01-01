@@ -1,3 +1,4 @@
+Its in building stage
 # 🚗 RideBuddy
 
 RideBuddy is a ride-sharing web platform that helps people traveling to the same destination
