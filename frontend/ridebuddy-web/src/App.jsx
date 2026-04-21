@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Search from "./pages/Search";
 
 /* Page transition animation */
@@ -62,6 +63,21 @@ function AnimatedRoutes() {
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
               <Login />
+            </motion.div>
+          }
+        />
+
+        <Route
+          path="/signup"
+          element={
+            <motion.div
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              <Signup />
             </motion.div>
           }
         />

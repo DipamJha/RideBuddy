@@ -1,73 +1,78 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
 };
 
 function Footer() {
   return (
-    <footer className="bg-gray-50 border-t">
-
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="max-w-7xl mx-auto px-6 py-16"
-      >
-        <div className="grid md:grid-cols-4 gap-12">
-
-          {/* Brand */}
-          <div>
-            <h3 className="text-2xl font-bold text-primary mb-4">
+    <footer className="bg-slate-50 dark:bg-dark border-t border-gray-200/50 dark:border-white/5">
+      <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
+          
+          {/* Brand Column */}
+          <div className="col-span-2 lg:col-span-2">
+            <Link to="/" className="text-3xl font-black tracking-tighter text-gradient mb-6 block">
               RideBuddy
-            </h3>
-            <p className="text-gray-600">
-              Share rides. Reduce traffic.
-              <br />Travel smarter together.
+            </Link>
+            <p className="text-slate-600 dark:text-slate-400 max-w-xs leading-relaxed mb-8">
+              Changing the way the world moves. Share your journey, 
+              reduce your footprint, and build meaningful connections on the road.
             </p>
+            <div className="flex gap-4">
+              {["𝕏", "💼", "📸", "🐙"].map((icon, i) => (
+                <button key={i} className="w-10 h-10 rounded-full border border-gray-200 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:text-brandDark hover:border-primary transition-all">
+                  {icon}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Product */}
+          {/* Links Columns */}
           <div>
-            <h4 className="font-semibold mb-4">Product</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li className="hover:text-primary transition cursor-pointer">Search Ride</li>
-              <li className="hover:text-primary transition cursor-pointer">Create Ride</li>
-              <li className="hover:text-primary transition cursor-pointer">How it Works</li>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-6">Explore</h4>
+            <ul className="space-y-4 text-slate-600 dark:text-slate-400 text-sm">
+              <li className="hover:text-primary transition-colors"><Link to="/search">Find Rides</Link></li>
+              <li className="hover:text-primary transition-colors"><Link to="/search?tab=offer">Offer a Ride</Link></li>
+              <li className="hover:text-primary transition-colors">Route Planning</li>
+              <li className="hover:text-primary transition-colors">Pricing</li>
             </ul>
           </div>
 
-          {/* Company */}
           <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li className="hover:text-primary transition cursor-pointer">About</li>
-              <li className="hover:text-primary transition cursor-pointer">Privacy</li>
-              <li className="hover:text-primary transition cursor-pointer">Terms</li>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-6">Company</h4>
+            <ul className="space-y-4 text-slate-600 dark:text-slate-400 text-sm">
+              <li className="hover:text-primary transition-colors">Our Mission</li>
+              <li className="hover:text-primary transition-colors">Safety</li>
+              <li className="hover:text-primary transition-colors">Terms of Service</li>
+              <li className="hover:text-primary transition-colors">Privacy Policy</li>
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
-            <h4 className="font-semibold mb-4">Connect</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li className="hover:text-primary transition cursor-pointer">Telegram</li>
-              <li className="hover:text-primary transition cursor-pointer">Email</li>
-              <li className="hover:text-primary transition cursor-pointer">GitHub</li>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-6">Support</h4>
+            <ul className="space-y-4 text-slate-600 dark:text-slate-400 text-sm">
+              <li className="hover:text-primary transition-colors">Help Center</li>
+              <li className="hover:text-primary transition-colors">Contact Us</li>
+              <li className="hover:text-primary transition-colors">Telegram Bot</li>
+              <li className="hover:text-primary transition-colors">Community</li>
             </ul>
           </div>
-
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-16 pt-8 border-t text-center text-gray-500 text-sm">
-          © {new Date().getFullYear()} RideBuddy. All rights reserved.
+        {/* Bottom Bar */}
+        <div className="pt-8 border-t border-gray-200/50 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-slate-500 text-xs font-medium">
+            © {new Date().getFullYear()} RideBuddy Technologies Inc. Crafted with passion for a greener Earth.
+          </p>
+          <div className="flex gap-8 text-xs font-bold text-slate-400">
+            <span className="cursor-pointer hover:text-primary">SYSTEM STATUS</span>
+            <span className="cursor-pointer hover:text-primary">COOKIE PREFERENCES</span>
+          </div>
         </div>
-      </motion.div>
-
+      </div>
     </footer>
   );
 }

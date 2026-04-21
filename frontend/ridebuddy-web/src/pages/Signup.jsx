@@ -8,12 +8,17 @@ const fadeUp = {
   animate: { opacity: 1, y: 0 },
 };
 
-function Login() {
+function Signup() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -26,11 +31,11 @@ function Login() {
     setError("");
 
     try {
-      const data = await authAPI.login(form);
+      const data = await authAPI.signup(form);
       saveAuth(data.token, data.user);
       navigate("/search");
     } catch (err) {
-      setError(err.data?.message || err.message || "Login failed");
+      setError(err.data?.message || err.message || "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -38,32 +43,7 @@ function Login() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      {/* Left — Image Panel */}
-      <div className="hidden lg:block relative overflow-hidden">
-        <img
-          src="/assets/login-bg.png"
-          alt="Ride sharing at golden hour"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-brandDark/70 via-brandDark/40 to-primary/20" />
-        <div className="absolute inset-0 flex flex-col justify-end p-16">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-          >
-            <h2 className="text-5xl font-bold text-white mb-4 leading-tight">
-              Welcome back,<br />
-              <span className="text-primary">Traveler.</span>
-            </h2>
-            <p className="text-white/70 text-lg max-w-sm">
-              Sign in to find rides, connect with your community, and make every journey count.
-            </p>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Right — Login Form */}
+      {/* Left — Form */}
       <div className="flex items-center justify-center px-8 py-16">
         <motion.form
           onSubmit={handleSubmit}
@@ -77,11 +57,11 @@ function Login() {
             <Link to="/" className="text-3xl font-black tracking-tighter text-gradient mb-6 inline-block">
               RideBuddy
             </Link>
-            <h1 className="text-3xl font-bold mb-3">Sign in to your account</h1>
+            <h1 className="text-3xl font-bold mb-3">Create your account</h1>
             <p className="text-slate-500 text-base">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-primary font-semibold hover:underline">
-                Create one free
+              Already have an account?{" "}
+              <Link to="/login" className="text-primary font-semibold hover:underline">
+                Sign in
               </Link>
             </p>
           </motion.div>
@@ -97,7 +77,7 @@ function Login() {
             </motion.div>
           )}
 
-          {/* Google Login */}
+          {/* Google Signup */}
           <motion.div variants={fadeUp} className="mb-8">
             <button type="button" className="w-full glass-card flex items-center justify-center gap-3 py-3.5 rounded-xl hover:border-primary/30 font-medium text-sm">
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -117,8 +97,34 @@ function Login() {
             <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
           </motion.div>
 
-          {/* Form */}
+          {/* Form Fields */}
           <motion.div variants={fadeUp} className="space-y-5 mb-8">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">First name</label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={form.firstName}
+                  onChange={handleChange}
+                  placeholder="John"
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-slate-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">Last name</label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={form.lastName}
+                  onChange={handleChange}
+                  placeholder="Doe"
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-slate-400"
+                  required
+                />
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">Email address</label>
               <input
@@ -132,19 +138,17 @@ function Login() {
               />
             </div>
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Password</label>
-                <button type="button" className="text-xs text-primary font-semibold hover:underline">Forgot password?</button>
-              </div>
+              <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
                   value={form.password}
                   onChange={handleChange}
-                  placeholder="Enter your password"
+                  placeholder="Minimum 8 characters"
                   className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-slate-400 pr-12"
                   required
+                  minLength={8}
                 />
                 <button
                   type="button"
@@ -168,19 +172,44 @@ function Login() {
             disabled={loading}
             className="w-full btn-primary text-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? "Signing In..." : "Sign In"}
+            {loading ? "Creating Account..." : "Create Account"}
           </motion.button>
 
           <motion.p variants={fadeUp} className="text-xs text-center text-slate-400 mt-8 leading-relaxed">
-            By signing in, you agree to our{" "}
+            By creating an account, you agree to our{" "}
             <span className="text-primary cursor-pointer hover:underline">Terms</span>{" "}
             and{" "}
             <span className="text-primary cursor-pointer hover:underline">Privacy Policy</span>.
           </motion.p>
         </motion.form>
       </div>
+
+      {/* Right — Image Panel */}
+      <div className="hidden lg:block relative overflow-hidden">
+        <img
+          src="/assets/signup-bg.png"
+          alt="Road trip at sunrise"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-bl from-brandDark/70 via-brandDark/40 to-primary/20" />
+        <div className="absolute inset-0 flex flex-col justify-end p-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+          >
+            <h2 className="text-5xl font-bold text-white mb-4 leading-tight">
+              Start your<br />
+              <span className="text-primary">journey today.</span>
+            </h2>
+            <p className="text-white/70 text-lg max-w-sm">
+              Join thousands of commuters saving money and building meaningful connections on the road.
+            </p>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
 
-export default Login;
+export default Signup;
