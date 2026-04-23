@@ -181,17 +181,20 @@ const googleCallback = async (req, res) => {
   try {
     // req.user is populated by passport
     if (!req.user) {
-      return res.redirect("http://localhost:5173/login?error=oauth_failed");
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
     }
 
     // Generate token
     const token = generateToken(req.user._id);
 
     // Redirect to frontend with token
-    res.redirect(`http://localhost:5173/login?token=${token}`);
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    res.redirect(`${frontendUrl}/login?token=${token}`);
   } catch (error) {
     console.error("Google callback error:", error);
-    res.redirect("http://localhost:5173/login?error=server_error");
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    res.redirect(`${frontendUrl}/login?error=server_error`);
   }
 };
 
