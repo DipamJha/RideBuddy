@@ -356,4 +356,73 @@ const cancelJoinedRide = async (req, res) => {
   }
 };
 
-module.exports = { createRide, searchRides, getRideById, joinRide, getMyRides, cancelJoinedRide };
+/**
+ * @desc    Cancel an entire ride trip (as a driver)
+ * @route   DELETE /api/rides/:id
+ * @access  Private
+ */
+const cancelOfferedRide = async (req, res) => {
+  try {
+    const ride = await Ride.findById(req.params.id).populate("passengers", "firstName telegramChatId");
+
+    if (!ride) {
+      return res.status(404).json({ success: false, message: "Ride not found" });
+    }
+
+    if (ride.driver.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "You are not authorized to cancel this trip" });
+    }
+
+    // 3-hour check for driver
+    const timeParts = ride.time.split(":");
+    let hours = parseInt(timeParts[0]);
+    let minutes = parseInt(timeParts[1]);
+    if (ride.time.toLowerCase().includes("pm") && hours < 12) hours += 12;
+    if (ride.time.toLowerCase().includes("am") && hours === 12) hours = 0;
+
+    const rideDateObj = new Date(ride.date);
+    rideDateObj.setHours(hours, minutes, 0, 0);
+
+    const timeDiffMs = rideDateObj.getTime() - Date.now();
+    const threeHoursMs = 3 * 60 * 60 * 1000;
+
+    if (timeDiffMs < threeHoursMs) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "You cannot cancel a trip within 3 hours of departure." 
+      });
+    }
+
+    // Mark as cancelled
+    ride.status = "cancelled";
+    await ride.save();
+
+    // 📢 Notify all passengers via Telegram
+    const dateStr = new Date(ride.date).toLocaleDateString("en-IN", {
+      weekday: "short", day: "numeric", month: "short"
+    });
+
+    for (const passenger of ride.passengers) {
+      if (passenger.telegramChatId) {
+        const passMsg = `❌ *Ride Cancelled by Driver!*\n\n` +
+          `Sorry, the driver has cancelled the trip:\n` +
+          `📍 *${ride.from}* → *${ride.to}*\n` +
+          `📅 ${dateStr} at ${ride.time}\n\n` +
+          `Please look for another ride on the website. 😔`;
+        
+        try {
+          await sendNotification(passenger.telegramChatId, passMsg);
+        } catch (err) {
+          console.error(`Failed to notify passenger ${passenger._id}:`, err.message);
+        }
+      }
+    }
+
+    res.json({ success: true, message: "Trip cancelled successfully and passengers notified." });
+  } catch (error) {
+    console.error("Cancel trip error:", error);
+    res.status(500).json({ success: false, message: "Server error while cancelling trip" });
+  }
+};
+
+module.exports = { createRide, searchRides, getRideById, joinRide, getMyRides, cancelJoinedRide, cancelOfferedRide };

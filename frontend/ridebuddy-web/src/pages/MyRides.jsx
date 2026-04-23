@@ -181,9 +181,22 @@ function RatingModal({ ride, isOpen, onClose, onSuccess }) {
 }
 
 /* ─── Ride Card (Offered) ─── */
-function OfferedRideCard({ ride }) {
+function OfferedRideCard({ ride, onCancel }) {
+  const [cancelLoading, setCancelLoading] = useState(false);
   const seatsLeft = ride.seats - (ride.seatsBooked || 0);
   const passengers = ride.passengers || [];
+
+  const handleCancelClick = async () => {
+    if (!window.confirm("Are you sure you want to cancel this entire trip? This will notify all passengers.")) return;
+    setCancelLoading(true);
+    try {
+      await onCancel(ride._id);
+    } catch (err) {
+      alert(err.data?.message || err.message || "Failed to cancel trip.");
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -261,6 +274,17 @@ function OfferedRideCard({ ride }) {
             </span>
             <StatusBadge status={ride.status} />
           </div>
+
+          {/* Cancel Button */}
+          {(ride.status === "active" || ride.status === "full") && (
+            <button
+              onClick={handleCancelClick}
+              disabled={cancelLoading}
+              className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+            >
+              {cancelLoading ? "..." : "Cancel Trip"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -460,6 +484,11 @@ function MyRides() {
     await fetchMyRides();
   };
 
+  const handleCancelOfferedRide = async (rideId) => {
+    await ridesAPI.deleteRide(rideId);
+    await fetchMyRides();
+  };
+
   const totalEarnings = offered.reduce(
     (sum, r) => sum + (r.price || 0) * (r.seatsBooked || 0),
     0
@@ -654,7 +683,7 @@ function MyRides() {
             >
               {activeTab === "offered"
                 ? displayList.map((ride) => (
-                    <OfferedRideCard key={ride._id} ride={ride} />
+                    <OfferedRideCard key={ride._id} ride={ride} onCancel={handleCancelOfferedRide} />
                   ))
                 : displayList.map((ride) => (
                     <JoinedRideCard key={ride._id} ride={ride} onCancel={handleCancelRide} />

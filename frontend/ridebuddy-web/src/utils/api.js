@@ -58,6 +58,7 @@ export const ridesAPI = {
 
   getById: (id) => apiFetch(`/rides/${id}`),
   cancelRide: (id) => apiFetch(`/rides/${id}/cancel`, { method: "POST" }),
+  deleteRide: (id) => apiFetch(`/rides/${id}`, { method: "DELETE" }),
   
   create: (body) =>
     apiFetch("/rides", { method: "POST", body: JSON.stringify(body) }),
