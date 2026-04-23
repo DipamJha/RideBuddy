@@ -93,8 +93,15 @@ function Navbar() {
                     )}
                   </div>
                   <div className="hidden sm:block text-left">
-                    <p className="text-sm font-bold leading-tight">{user.firstName}</p>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Member</p>
+                    <p className="text-sm font-bold leading-tight flex items-center gap-1.5">
+                      {user.firstName}
+                      {user.telegramChatId && (
+                        <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]" title="Telegram Connected" />
+                      )}
+                    </p>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
+                      {user.telegramChatId ? "Connected" : "Member"}
+                    </p>
                   </div>
                   <svg className={`w-4 h-4 text-slate-400 transition-transform ${showMenu ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -109,8 +116,13 @@ function Navbar() {
                     className="absolute right-0 top-14 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200/50 dark:border-white/10 overflow-hidden z-50"
                   >
                     <div className="px-5 py-4 border-b border-slate-100 dark:border-white/5">
-                      <p className="font-bold text-sm">{user.firstName} {user.lastName}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-bold text-sm">{user.firstName} {user.lastName}</p>
+                        {user.telegramChatId && (
+                          <span className="text-[10px] bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">TG</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400">{user.email}</p>
                     </div>
                     <div className="p-2">
                       <Link
