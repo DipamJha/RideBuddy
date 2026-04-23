@@ -14,7 +14,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    avatar: "🧑",
+    avatar: "",
   });
   const [message, setMessage] = useState({ type: "", text: "" });
 
@@ -39,7 +39,7 @@ const Profile = () => {
       setFormData({
         firstName: userRes.user.firstName,
         lastName: userRes.user.lastName || "",
-        avatar: userRes.user.avatar || "🧑",
+        avatar: userRes.user.avatar || "",
       });
     } catch (err) {
       console.error("Fetch profile error:", err);
@@ -58,7 +58,7 @@ const Profile = () => {
       setUser(res.user);
       // Update local storage too so Navbar updates
       saveAuth(localStorage.getItem("ridebuddy_token"), res.user);
-      setMessage({ type: "success", text: "Profile updated successfully! ✨" });
+      setMessage({ type: "success", text: "Profile updated successfully!" });
     } catch (err) {
       setMessage({ type: "error", text: err.data?.message || "Failed to update profile" });
     } finally {
@@ -101,10 +101,10 @@ const Profile = () => {
               {formData.avatar?.startsWith("http") ? (
                 <img src={formData.avatar} alt={formData.firstName} className="w-full h-full object-cover" />
               ) : (
-                formData.avatar || "🧑"
+                formData.avatar || ""
               )}
               <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-xl shadow-lg border-4 border-white dark:border-brandDark cursor-pointer hover:scale-110 transition-transform">
-                📸
+                
               </div>
             </div>
           </div>
@@ -113,7 +113,7 @@ const Profile = () => {
           </h1>
           <p className="text-slate-500 font-medium">{user.email}</p>
           <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest border border-primary/20">
-            ⭐ Verified Member
+            Verified Member
           </div>
         </motion.div>
 
@@ -125,12 +125,12 @@ const Profile = () => {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 gap-4">
               <div className="glass-card p-6 rounded-3xl text-center border border-white/10">
-                <div className="text-2xl mb-1">🚗</div>
+                <div className="text-2xl mb-1"></div>
                 <div className="text-2xl font-black">{user.trips || 0}</div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Trips</div>
               </div>
               <div className="glass-card p-6 rounded-3xl text-center border border-white/10">
-                <div className="text-2xl mb-1">⭐</div>
+                <div className="text-2xl mb-1"></div>
                 <div className="text-2xl font-black">{user.rating?.toFixed(1) || "5.0"}</div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Rating</div>
               </div>
@@ -140,7 +140,7 @@ const Profile = () => {
             <div className="glass-card p-6 rounded-3xl border border-blue-500/10 bg-blue-500/5 relative overflow-hidden group">
               <div className="absolute -top-4 -right-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-xl">📱</div>
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-xl"></div>
                 <div>
                   <h3 className="font-bold text-sm">Telegram Bot</h3>
                   <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Automation Status</p>
@@ -176,7 +176,7 @@ const Profile = () => {
                     rel="noopener noreferrer"
                     className="block w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-center text-xs font-bold transition-all shadow-lg shadow-blue-500/20"
                   >
-                    Connect Telegram 🔗
+                    Connect Telegram
                   </a>
                 </div>
               )}
@@ -193,7 +193,7 @@ const Profile = () => {
               className="glass-card p-8 rounded-[2rem] border border-white/10"
             >
               <h3 className="text-xl font-bold mb-8 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-sm">⚙️</span>
+                <span className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-sm"></span>
                 Account Settings
               </h3>
 
@@ -268,7 +268,7 @@ const Profile = () => {
             >
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-bold flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-sm">🔔</span>
+                  <span className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-sm"></span>
                   Active Ride Alerts
                 </h3>
                 <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-400">
@@ -310,7 +310,7 @@ const Profile = () => {
                         className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
                         title="Cancel Alert"
                       >
-                        🗑️
+                        Delete
                       </button>
                     </motion.div>
                   ))}

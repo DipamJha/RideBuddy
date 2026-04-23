@@ -89,7 +89,7 @@ function Navbar() {
                     {user.avatar?.startsWith("http") ? (
                       <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
                     ) : (
-                      user.avatar || "🧑"
+                      user.avatar || ""
                     )}
                   </div>
                   <div className="hidden sm:block text-left">
@@ -118,20 +118,20 @@ function Navbar() {
                         onClick={() => setShowMenu(false)}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5"
                       >
-                        🚗 My Rides
+                        My Rides
                       </Link>
                       <Link
                         to="/profile"
                         onClick={() => setShowMenu(false)}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5"
                       >
-                        ⚙️ Profile
+                        Profile
                       </Link>
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-red-50 dark:hover:bg-red-500/10 text-red-500"
                       >
-                        🚪 Sign Out
+                        Sign Out
                       </button>
                     </div>
                   </motion.div>

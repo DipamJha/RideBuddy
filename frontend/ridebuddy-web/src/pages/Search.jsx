@@ -40,12 +40,12 @@ function Stars({ rating }) {
 /* ─── Amenity Badge ─── */
 function AmenityBadge({ label }) {
   const icons = {
-    AC: "❄️",
-    Music: "🎵",
-    "Pet-Friendly": "🐾",
-    "Luggage Space": "🧳",
-    "Charging Port": "🔌",
-    "Wi-Fi": "📶",
+    AC: "",
+    Music: "",
+    "Pet-Friendly": "",
+    "Luggage Space": "",
+    "Charging Port": "",
+    "Wi-Fi": "",
   };
   return (
     <span className="inline-flex items-center gap-1 text-xs bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 px-2 py-1 rounded-full border border-slate-200/60 dark:border-white/10">
@@ -96,7 +96,7 @@ function formatRide(ride) {
   return {
     ...ride,
     driverName,
-    avatar: driver.avatar || "🧑",
+    avatar: driver.avatar || "",
     rating: driver.rating || 5.0,
     trips: driver.trips || 0,
     seatsLeft,
@@ -314,7 +314,7 @@ function Search() {
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                🔍 Find a Ride
+                Find a Ride
               </button>
               <button
                 id="tab-offer-ride"
@@ -325,7 +325,7 @@ function Search() {
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                🚗 Offer a Ride
+                Offer a Ride
               </button>
             </div>
           </motion.div>
@@ -366,28 +366,28 @@ function Search() {
                   <div className="lg:col-span-1">
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">From</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">📍</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                       <input id="search-from" type="text" placeholder="Pickup location" value={fromVal} onChange={(e) => setFromVal(e.target.value)} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium placeholder:text-slate-400" />
                     </div>
                   </div>
                   <div className="lg:col-span-1">
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">To</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">🎯</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                       <input id="search-to" type="text" placeholder="Drop-off location" value={toVal} onChange={(e) => setToVal(e.target.value)} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium placeholder:text-slate-400" />
                     </div>
                   </div>
                   <div className="lg:col-span-1">
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">📅</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                       <input id="search-date" type="date" value={dateVal} onChange={(e) => setDateVal(e.target.value)} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium text-slate-600 dark:text-slate-300" />
                     </div>
                   </div>
                   <div className="lg:col-span-1">
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Seats</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">💺</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                       <select id="search-seats" value={seatsVal} onChange={(e) => setSeatsVal(e.target.value)} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium text-slate-600 dark:text-slate-300 appearance-none">
                         <option value="">Any</option>
                         <option value="1">1 Seat</option>
@@ -417,7 +417,7 @@ function Search() {
               {/* ─── Error State ─── */}
               {error && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-                  <div className="text-5xl mb-4">⚠️</div>
+                  <div className="text-5xl mb-4"></div>
                   <p className="text-slate-500 text-lg font-medium">{error}</p>
                   <p className="text-slate-400 text-sm mt-2">Run: <code className="bg-slate-100 dark:bg-white/5 px-2 py-1 rounded text-xs">npm run dev</code> in the backend directory</p>
                 </motion.div>
@@ -434,7 +434,7 @@ function Search() {
               {/* ─── Empty State with Notify Me ─── */}
               {!loading && !error && displayRides.length === 0 && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-                  <div className="text-6xl mb-4">🛣️</div>
+                  <div className="text-6xl mb-4"></div>
                   <h3 className="text-2xl font-bold mb-2">No rides available yet</h3>
                   <p className="text-slate-500 mb-6">Be the first to offer a ride on this route!</p>
 
@@ -450,7 +450,7 @@ function Search() {
                             : "border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary"
                         }`}
                       >
-                        🔔 Notify Me on Telegram
+                        Notify Me on Telegram
                       </button>
                     )}
                     {searchDone && !isLoggedIn() && (
@@ -469,7 +469,7 @@ function Search() {
                       >
                         <div className="glass-card rounded-2xl p-6 text-left border border-primary/20 shadow-lg shadow-primary/5">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl">📱</div>
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl"></div>
                             <div>
                               <h4 className="font-bold text-sm">Get Telegram Notifications</h4>
                               <p className="text-xs text-slate-400">We'll auto-book when a ride matches!</p>
@@ -478,7 +478,7 @@ function Search() {
 
                           {alertSuccess ? (
                             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
-                              <div className="text-4xl mb-2">🎉</div>
+                              <div className="text-4xl mb-2"></div>
                               <p className="font-bold text-emerald-600 dark:text-emerald-400">Alert set!</p>
                               <p className="text-xs text-slate-500 mt-1">You'll be notified on Telegram when a ride for <strong>{fromVal} → {toVal}</strong> is available.</p>
                             </motion.div>
@@ -543,7 +543,7 @@ function Search() {
                                   disabled={alertLoading}
                                   className="w-full bg-primary hover:bg-primaryDark text-brandDark py-3 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
                                 >
-                                  {alertLoading ? "Setting Alert..." : "🔔 Set Alert"}
+                                  {alertLoading ? "Setting Alert..." : "Set Alert"}
                                 </button>
                               </div>
                             </>
@@ -608,7 +608,7 @@ function Search() {
                                 {ride.avatar?.startsWith("http") ? (
                                   <img src={ride.avatar} alt={ride.driverName} className="w-full h-full object-cover" />
                                 ) : (
-                                  ride.avatar || "🧑"
+                                  ride.avatar || ""
                                 )}
                               </div>
                               <div>
@@ -691,7 +691,7 @@ function Search() {
                 <AnimatePresence>
                   {offerSubmitted && (
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="absolute inset-0 z-20 bg-white/95 dark:bg-brandDark/95 backdrop-blur-xl rounded-3xl flex flex-col items-center justify-center">
-                      <div className="text-7xl mb-6">🎉</div>
+                      <div className="text-7xl mb-6"></div>
                       <h3 className="text-3xl font-bold mb-3">Ride Published!</h3>
                       <p className="text-slate-500 text-lg">Your ride is now visible to passengers.</p>
                     </motion.div>
@@ -699,7 +699,7 @@ function Search() {
                 </AnimatePresence>
 
                 <div className="text-center mb-10">
-                  <div className="text-5xl mb-4">🚗</div>
+                  <div className="text-5xl mb-4"></div>
                   <h2 className="text-3xl font-bold mb-2">Offer a Ride</h2>
                   <p className="text-slate-500">Fill in your trip details below. Passengers will be able to find and join your ride.</p>
                 </div>
@@ -717,14 +717,14 @@ function Search() {
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Pickup Location</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">📍</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                         <input id="offer-from" type="text" placeholder="Where are you starting?" value={offerForm.from} onChange={(e) => setOfferForm({ ...offerForm, from: e.target.value })} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium placeholder:text-slate-400" required />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Drop-off Location</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">🎯</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                         <input id="offer-to" type="text" placeholder="Where are you going?" value={offerForm.to} onChange={(e) => setOfferForm({ ...offerForm, to: e.target.value })} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium placeholder:text-slate-400" required />
                       </div>
                     </div>
@@ -735,14 +735,14 @@ function Search() {
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Date</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">📅</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                         <input id="offer-date" type="date" value={offerForm.date} onChange={(e) => setOfferForm({ ...offerForm, date: e.target.value })} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium text-slate-600 dark:text-slate-300" required />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Departure Time</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">⏰</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                         <input id="offer-time" type="time" value={offerForm.time} onChange={(e) => setOfferForm({ ...offerForm, time: e.target.value })} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium text-slate-600 dark:text-slate-300" required />
                       </div>
                     </div>
@@ -753,7 +753,7 @@ function Search() {
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Available Seats</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">💺</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                         <select id="offer-seats" value={offerForm.seats} onChange={(e) => setOfferForm({ ...offerForm, seats: e.target.value })} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium text-slate-600 dark:text-slate-300 appearance-none" required>
                           <option value="">Select</option>
                           <option value="1">1 Seat</option>
@@ -766,14 +766,14 @@ function Search() {
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Price per Seat</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">💰</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                         <input id="offer-price" type="number" placeholder="₹ Amount" value={offerForm.price} onChange={(e) => setOfferForm({ ...offerForm, price: e.target.value })} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium placeholder:text-slate-400" required />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Vehicle</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg">🚙</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg"></span>
                         <input id="offer-vehicle" type="text" placeholder="e.g. Honda City" value={offerForm.vehicle} onChange={(e) => setOfferForm({ ...offerForm, vehicle: e.target.value })} className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium placeholder:text-slate-400" />
                       </div>
                     </div>

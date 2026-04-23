@@ -27,19 +27,19 @@ const steps = [
     title: "Discover Nearby Rides", 
     text: "Browse verified rides heading your way. Filter by time, comfort, and cost to find your perfect match.", 
     img: "/assets/discover.png", 
-    icon: "🔍" 
+    icon: "" 
   },
   { 
     title: "Book with Confidence", 
     text: "Secure your seat with one click. Enjoy instant confirmation and direct coordination via our secure chat.", 
     img: "/assets/book.png", 
-    icon: "📅" 
+    icon: "" 
   },
   { 
     title: "Enjoy Your Journey", 
     text: "Meet your buddy and ride comfortably. Save up to 60% on travel costs while making every trip social and productive.", 
     img: "/assets/ride.png", 
-    icon: "🚗" 
+    icon: "" 
   },
 ];
 
@@ -158,7 +158,7 @@ function Home() {
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.5 }}
                   >
-                    <div className="text-5xl mb-8">{steps[activeStep].icon}</div>
+                    <div className="text-5xl mb-8"></div>
                     <h3 className="text-4xl font-bold mb-6">{steps[activeStep].title}</h3>
                     <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed mb-10">
                       {steps[activeStep].text}

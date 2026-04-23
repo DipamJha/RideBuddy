@@ -22,7 +22,7 @@ function Footer() {
               reduce your footprint, and build meaningful connections on the road.
             </p>
             <div className="flex gap-4">
-              {["𝕏", "💼", "📸", "🐙"].map((icon, i) => (
+              {["X", "In", "Ig", "Gh"].map((icon, i) => (
                 <button key={i} className="w-10 h-10 rounded-full border border-gray-200 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:text-brandDark hover:border-primary transition-all">
                   {icon}
                 </button>

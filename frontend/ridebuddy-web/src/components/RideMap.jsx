@@ -55,7 +55,7 @@ const RideMap = ({ rides, center = [12.9716, 77.5946], zoom = 12 }) => {
             <Popup className="premium-popup">
               <div className="p-2 min-w-[150px]">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">🚗</span>
+                  <span className="text-lg"></span>
                   <span className="font-bold text-sm">{marker.ride.from} → {marker.ride.to}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold">

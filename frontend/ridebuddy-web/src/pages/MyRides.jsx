@@ -23,7 +23,7 @@ function StatusBadge({ status }) {
     cancelled:
       "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/20",
   };
-  const icons = { active: "🟢", completed: "✅", cancelled: "❌" };
+  const icons = { active: "", completed: "", cancelled: "" };
 
   return (
     <span
@@ -124,7 +124,7 @@ function RatingModal({ ride, isOpen, onClose, onSuccess }) {
         </button>
 
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4">⭐</div>
+          <div className="text-5xl mb-4"></div>
           <h2 className="text-2xl font-bold mb-2">Rate your driver</h2>
           <p className="text-sm text-slate-400">
             How was your journey from <strong>{ride.from}</strong> to{" "}
@@ -149,7 +149,7 @@ function RatingModal({ ride, isOpen, onClose, onSuccess }) {
                   s <= rating ? "grayscale-0" : "grayscale opacity-30"
                 }`}
               >
-                ⭐
+                {""}
               </button>
             ))}
           </div>
@@ -280,7 +280,7 @@ function OfferedRideCard({ ride }) {
                   {p.avatar?.startsWith("http") ? (
                     <img src={p.avatar} alt={p.firstName} className="w-5 h-5 object-cover rounded-full inline" />
                   ) : (
-                    p.avatar || "🧑"
+                    p.avatar || ""
                   )}
                 </span>
                 <span className="text-xs font-semibold">
@@ -330,7 +330,7 @@ function JoinedRideCard({ ride, onCancel }) {
             {driver.avatar?.startsWith("http") ? (
               <img src={driver.avatar} alt={driverName} className="w-full h-full object-cover" />
             ) : (
-              driver.avatar || "🧑"
+              driver.avatar || ""
             )}
           </div>
           <div>
@@ -487,7 +487,7 @@ function MyRides() {
               {user?.avatar?.startsWith("http") ? (
                 <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
               ) : (
-                user?.avatar || "🧑"
+                user?.avatar || ""
               )}
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-2">
@@ -508,25 +508,25 @@ function MyRides() {
           >
             {[
               {
-                icon: "🚗",
+                icon: "",
                 label: "Rides Offered",
                 value: offered.length,
                 color: "from-amber-500/10 to-orange-500/10",
               },
               {
-                icon: "🎫",
+                icon: "",
                 label: "Rides Joined",
                 value: joined.length,
                 color: "from-blue-500/10 to-cyan-500/10",
               },
               {
-                icon: "💰",
+                icon: "",
                 label: "Earnings",
                 value: `₹${totalEarnings}`,
                 color: "from-emerald-500/10 to-green-500/10",
               },
               {
-                icon: "💳",
+                icon: "",
                 label: "Spent",
                 value: `₹${totalSpent}`,
                 color: "from-purple-500/10 to-pink-500/10",
@@ -565,7 +565,7 @@ function MyRides() {
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                🚗 Offered ({offered.length})
+                Offered ({offered.length})
               </button>
               <button
                 id="tab-joined"
@@ -576,7 +576,7 @@ function MyRides() {
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                🎫 Joined ({joined.length})
+                Joined ({joined.length})
               </button>
             </div>
           </motion.div>
@@ -592,7 +592,7 @@ function MyRides() {
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <div className="text-5xl mb-4">⚠️</div>
+            <div className="text-5xl mb-4"></div>
             <p className="text-slate-500 text-lg font-medium">{error}</p>
           </motion.div>
         )}
@@ -615,7 +615,7 @@ function MyRides() {
             className="text-center py-16"
           >
             <div className="text-6xl mb-4">
-              {activeTab === "offered" ? "🛣️" : "🎫"}
+              {activeTab === "offered" ? "" : ""}
             </div>
             <h3 className="text-2xl font-bold mb-2">
               {activeTab === "offered"
