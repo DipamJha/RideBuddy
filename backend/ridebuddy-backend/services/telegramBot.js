@@ -115,31 +115,59 @@ function initBot() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Find active or full rides the user has joined
+      // Find rides the user is driving
+      const offeredRides = await Ride.find({
+        driver: user._id,
+        date: { $gte: today },
+        status: { $in: ["active", "full"] },
+      }).populate("passengers", "firstName lastName");
+
+      // Find rides the user has joined as a passenger
       const joinedRides = await Ride.find({
         passengers: user._id,
         date: { $gte: today },
         status: { $in: ["active", "full"] },
       }).populate("driver", "firstName lastName");
 
-      if (joinedRides.length === 0) {
-        return bot.sendMessage(chatId, "You haven't joined any upcoming rides.");
+      if (offeredRides.length === 0 && joinedRides.length === 0) {
+        return bot.sendMessage(chatId, "You don't have any upcoming rides (offered or joined).");
       }
 
-      await bot.sendMessage(chatId, "🎫 *Your Upcoming Joined Rides:*", { parse_mode: "Markdown" });
+      // ─── Section: Rides you are DRIVING ───
+      if (offeredRides.length > 0) {
+        await bot.sendMessage(chatId, "🚗 *Rides You are Offering:*", { parse_mode: "Markdown" });
+        for (const ride of offeredRides) {
+          const dateStr = new Date(ride.date).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+          const passengerCount = ride.passengers.length;
+          const message = `📍 *${ride.from}* → *${ride.to}*\n📅 ${dateStr} at ${ride.time}\n💺 ${passengerCount}/${ride.seats} seats booked\n👥 Passengers: ${passengerCount > 0 ? ride.passengers.map(p => p.firstName).join(", ") : "None"}`;
+          
+          await bot.sendMessage(chatId, message, {
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: "🛑 Cancel Trip (Full)", callback_data: `canceltrip_${ride._id}` }]
+              ],
+            },
+          });
+        }
+      }
 
-      for (const ride of joinedRides) {
-        const dateStr = new Date(ride.date).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
-        const message = `📍 *${ride.from}* → *${ride.to}*\n📅 ${dateStr} at ${ride.time}\n💰 ₹${ride.price} per seat\n🚗 Driver: ${ride.driver?.firstName || "Unknown"}`;
-        
-        await bot.sendMessage(chatId, message, {
-          parse_mode: "Markdown",
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "❌ Cancel Ride", callback_data: `cancel_${ride._id}` }]
-            ],
-          },
-        });
+      // ─── Section: Rides you have JOINED ───
+      if (joinedRides.length > 0) {
+        await bot.sendMessage(chatId, "\n🎫 *Rides You Joined:*", { parse_mode: "Markdown" });
+        for (const ride of joinedRides) {
+          const dateStr = new Date(ride.date).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+          const message = `📍 *${ride.from}* → *${ride.to}*\n📅 ${dateStr} at ${ride.time}\n💰 ₹${ride.price} per seat\n🚗 Driver: ${ride.driver?.firstName || "Unknown"}`;
+          
+          await bot.sendMessage(chatId, message, {
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: "❌ Cancel My Seat", callback_data: `cancel_${ride._id}` }]
+              ],
+            },
+          });
+        }
       }
     } catch (err) {
       console.error(err);
@@ -202,7 +230,8 @@ function initBot() {
           return bot.editMessageText("⚠️ This ride is no longer available.", { chat_id: chatId, message_id: messageId });
         }
 
-        if (!ride.passengers.includes(user._id)) {
+        const isPassenger = ride.passengers.some(p => p.toString() === user._id.toString());
+        if (!isPassenger) {
           return bot.editMessageText("⚠️ You are not a passenger on this ride.", { chat_id: chatId, message_id: messageId });
         }
 
@@ -242,6 +271,60 @@ function initBot() {
           const seatsLeft = ride.seats - ride.seatsBooked;
           const driverMsg = `⚠️ *Ride Cancellation!*\n\n*${user.firstName} ${user.lastName || ""}* has cancelled their booking on your ride:\n\n📍 *${ride.from}* → *${ride.to}*\n📅 ${dateStr} at ${ride.time}\n\nYour ride now has ${seatsLeft} seat${seatsLeft !== 1 ? "s" : ""} available.`;
           await bot.sendMessage(ride.driver.telegramChatId, driverMsg, { parse_mode: "Markdown" });
+        }
+        return;
+      }
+
+      // ── Cancel Trip (from /myrides command - DRIVER version) ──
+      if (data.startsWith("canceltrip_")) {
+        const rideId = data.split("_")[1];
+        
+        const user = await User.findOne({ telegramChatId: String(chatId) });
+        if (!user) return;
+
+        const ride = await Ride.findById(rideId).populate("passengers", "firstName telegramChatId");
+        if (!ride) {
+          return bot.editMessageText("⚠️ This ride is already gone.", { chat_id: chatId, message_id: messageId });
+        }
+
+        if (ride.driver.toString() !== user._id.toString()) {
+          return bot.editMessageText("⚠️ You are not the driver of this ride.", { chat_id: chatId, message_id: messageId });
+        }
+
+        // 3-hour check for driver too
+        const timeParts = ride.time.split(":");
+        let hours = parseInt(timeParts[0]);
+        let minutes = parseInt(timeParts[1]);
+        if (ride.time.toLowerCase().includes("pm") && hours < 12) hours += 12;
+        if (ride.time.toLowerCase().includes("am") && hours === 12) hours = 0;
+
+        const rideDateObj = new Date(ride.date);
+        rideDateObj.setHours(hours, minutes, 0, 0);
+
+        const timeDiffMs = rideDateObj.getTime() - Date.now();
+        const threeHoursMs = 3 * 60 * 60 * 1000;
+
+        if (timeDiffMs < threeHoursMs) {
+          return bot.editMessageText("⚠️ *Cannot Cancel*\n\nDrivers cannot cancel a trip within 3 hours of departure. Please contact your passengers if it's an emergency.", { 
+            chat_id: chatId, message_id: messageId, parse_mode: "Markdown" 
+          });
+        }
+
+        // Apply cancellation
+        ride.status = "cancelled";
+        await ride.save();
+
+        await bot.editMessageText(`🛑 *Trip Cancelled*\n\nYou have successfully cancelled your offered trip:\n📍 *${ride.from}* → *${ride.to}*`, { 
+          chat_id: chatId, message_id: messageId, parse_mode: "Markdown" 
+        });
+
+        // Notify all passengers
+        const dateStr = new Date(ride.date).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+        for (const passenger of ride.passengers) {
+          if (passenger.telegramChatId) {
+            const passMsg = `❌ *Ride Cancelled by Driver!*\n\nSorry, the driver has cancelled the trip:\n📍 *${ride.from}* → *${ride.to}*\n📅 ${dateStr} at ${ride.time}\n\nPlease look for another ride on the website. 😔`;
+            await bot.sendMessage(passenger.telegramChatId, passMsg, { parse_mode: "Markdown" });
+          }
         }
         return;
       }
