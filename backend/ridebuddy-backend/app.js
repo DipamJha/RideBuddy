@@ -7,6 +7,7 @@ const rideRoutes = require("./routes/rideRoutes");
 const alertRoutes = require("./routes/alertRoutes");
 
 const app = express();
+app.set("trust proxy", 1);
 
 /* ─── Global Middleware ─── */
 app.use(cors());

@@ -102,9 +102,7 @@ function Signup() {
             <button
               type="button"
               onClick={() => {
-                const backendUrl = window.location.hostname === "localhost" 
-                  ? "http://localhost:5000" 
-                  : ""; // Update for production
+                const backendUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
                 window.location.href = `${backendUrl}/api/auth/google`;
               }}
               className="w-full glass-card flex items-center justify-center gap-3 py-3.5 rounded-xl hover:border-primary/30 font-medium text-sm transition-all"

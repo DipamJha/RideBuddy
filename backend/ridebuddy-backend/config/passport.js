@@ -8,7 +8,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: "/api/auth/google/callback",
+        callbackURL: process.env.CALLBACK_URL || "/api/auth/google/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
@@ -16,7 +16,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           const email = emails && emails.length > 0 ? emails[0].value : `${id}@google.com`;
           const firstName = (name && name.givenName) ? name.givenName : email.split("@")[0];
           const lastName = (name && name.familyName) ? name.familyName : "User";
-          const avatar = (photos && photos.length > 0) ? photos[0].value : "🧑";
+          const avatar = (photos && photos.length > 0) ? photos[0].value : "";
 
           // Check if user already exists
           let user = await User.findOne({ email });
