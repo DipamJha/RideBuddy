@@ -6,6 +6,7 @@ const {
   getRideById,
   joinRide,
   getMyRides,
+  cancelJoinedRide,
 } = require("../controllers/rideController");
 const { protect } = require("../middlewares/auth");
 const { createRideRules, validate } = require("../utils/validators");
@@ -24,5 +25,8 @@ router.post("/", protect, createRideRules, validate, createRide);
 
 // POST /api/rides/:id/join — join a ride (protected)
 router.post("/:id/join", protect, joinRide);
+
+// POST /api/rides/:id/cancel — cancel a joined ride (protected)
+router.post("/:id/cancel", protect, cancelJoinedRide);
 
 module.exports = router;

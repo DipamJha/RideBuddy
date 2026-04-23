@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { authAPI, saveAuth } from "../utils/api";
 
 const fadeUp = {
@@ -14,6 +14,27 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ email: "", password: "" });
+  const [searchParams] = useSearchParams();
+
+  // Handle Google OAuth Callback
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (token) {
+      setLoading(true);
+      // Fetch user data with the token
+      localStorage.setItem("ridebuddy_token", token);
+      authAPI.getMe()
+        .then(data => {
+          saveAuth(token, data.user);
+          navigate("/search");
+        })
+        .catch(err => {
+          setError("Google login failed. Please try again.");
+          localStorage.removeItem("ridebuddy_token");
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [searchParams, navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -99,7 +120,16 @@ function Login() {
 
           {/* Google Login */}
           <motion.div variants={fadeUp} className="mb-8">
-            <button type="button" className="w-full glass-card flex items-center justify-center gap-3 py-3.5 rounded-xl hover:border-primary/30 font-medium text-sm">
+            <button
+              type="button"
+              onClick={() => {
+                const backendUrl = window.location.hostname === "localhost" 
+                  ? "http://localhost:5000" 
+                  : ""; // Update for production
+                window.location.href = `${backendUrl}/api/auth/google`;
+              }}
+              className="w-full glass-card flex items-center justify-center gap-3 py-3.5 rounded-xl hover:border-primary/30 font-medium text-sm transition-all"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>

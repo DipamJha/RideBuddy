@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ridesAPI, isLoggedIn } from "../utils/api";
+import { ridesAPI, alertsAPI, isLoggedIn, getUser } from "../utils/api";
+import RideMap from "../components/RideMap";
+import { geocodeRides } from "../utils/geocoding";
 
 /* ─── Animations ─── */
 const fadeUp = {
@@ -116,6 +118,8 @@ function Search() {
   const [dateVal, setDateVal] = useState("");
   const [seatsVal, setSeatsVal] = useState("");
   const [rides, setRides] = useState([]);
+  const [geocodedRides, setGeocodedRides] = useState([]);
+  const [viewMode, setViewMode] = useState("list"); // "list" or "map"
   const [loading, setLoading] = useState(false);
   const [searchDone, setSearchDone] = useState(false);
   const [error, setError] = useState("");
@@ -139,10 +143,21 @@ function Search() {
   const [joiningId, setJoiningId] = useState(null);
   const [joinMessage, setJoinMessage] = useState("");
 
+  // Alert (Notify Me) state
+  const [showAlertForm, setShowAlertForm] = useState(false);
+  const [alertChatId, setAlertChatId] = useState("");
+  const [alertLoading, setAlertLoading] = useState(false);
+  const [alertSuccess, setAlertSuccess] = useState(false);
+  const [alertError, setAlertError] = useState("");
+
   // Sync tab from URL query param
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "offer") setActiveTab("offer");
+    if (tab === "offer") {
+      setActiveTab("offer");
+    } else {
+      setActiveTab("find");
+    }
   }, [searchParams]);
 
   // Load rides on mount
@@ -155,7 +170,13 @@ function Search() {
     setError("");
     try {
       const data = await ridesAPI.search(params);
-      setRides(data.rides || []);
+      const rideList = data.rides || [];
+      setRides(rideList);
+
+      // Geocode rides for the map
+      if (rideList.length > 0) {
+        geocodeRides(rideList).then(setGeocodedRides);
+      }
     } catch (err) {
       // If backend is not running, show friendly message
       setError("Could not load rides. Make sure the backend server is running.");
@@ -410,19 +431,160 @@ function Search() {
                 </div>
               )}
 
-              {/* ─── Empty State ─── */}
+              {/* ─── Empty State with Notify Me ─── */}
               {!loading && !error && displayRides.length === 0 && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
                   <div className="text-6xl mb-4">🛣️</div>
                   <h3 className="text-2xl font-bold mb-2">No rides available yet</h3>
                   <p className="text-slate-500 mb-6">Be the first to offer a ride on this route!</p>
-                  <button onClick={() => setActiveTab("offer")} className="btn-primary text-sm">Offer a Ride</button>
+
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+                    <button onClick={() => setActiveTab("offer")} className="btn-primary text-sm">Offer a Ride</button>
+                    {searchDone && isLoggedIn() && (
+                      <button
+                        id="notify-me-btn"
+                        onClick={() => setShowAlertForm(!showAlertForm)}
+                        className={`px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-widest border-2 transition-all ${
+                          showAlertForm
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary"
+                        }`}
+                      >
+                        🔔 Notify Me on Telegram
+                      </button>
+                    )}
+                    {searchDone && !isLoggedIn() && (
+                      <p className="text-sm text-slate-400 mt-2">Sign in to get notified when this ride becomes available</p>
+                    )}
+                  </div>
+
+                  {/* ─── Telegram Alert Form ─── */}
+                  <AnimatePresence>
+                    {showAlertForm && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 15, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: "auto" }}
+                        exit={{ opacity: 0, y: 15, height: 0 }}
+                        className="max-w-md mx-auto"
+                      >
+                        <div className="glass-card rounded-2xl p-6 text-left border border-primary/20 shadow-lg shadow-primary/5">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl">📱</div>
+                            <div>
+                              <h4 className="font-bold text-sm">Get Telegram Notifications</h4>
+                              <p className="text-xs text-slate-400">We'll auto-book when a ride matches!</p>
+                            </div>
+                          </div>
+
+                          {alertSuccess ? (
+                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
+                              <div className="text-4xl mb-2">🎉</div>
+                              <p className="font-bold text-emerald-600 dark:text-emerald-400">Alert set!</p>
+                              <p className="text-xs text-slate-500 mt-1">You'll be notified on Telegram when a ride for <strong>{fromVal} → {toVal}</strong> is available.</p>
+                            </motion.div>
+                          ) : (
+                            <>
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Your Telegram Chat ID</label>
+                                  <input
+                                    id="alert-chat-id"
+                                    type="text"
+                                    placeholder="e.g. 123456789"
+                                    value={alertChatId}
+                                    onChange={(e) => setAlertChatId(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium placeholder:text-slate-400"
+                                  />
+                                </div>
+                                <div className="bg-blue-50 dark:bg-blue-500/5 rounded-xl p-3 border border-blue-100 dark:border-blue-500/10">
+                                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">💡 How to get your Chat ID:</p>
+                                  <ol className="text-xs text-blue-500/80 mt-1 space-y-0.5 list-decimal list-inside">
+                                    <li>
+                                      <a 
+                                        href={`https://t.me/RideBuddyBot?start=${getUser()?.id}`} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="underline hover:text-primary font-bold"
+                                      >
+                                        Click here to open @RideBuddyBot
+                                      </a>
+                                    </li>
+                                    <li>Send <code className="bg-blue-100 dark:bg-blue-500/10 px-1 rounded">/start</code></li>
+                                    <li>Copy the Chat ID the bot gives you (or check if it's already auto-linked!)</li>
+                                  </ol>
+                                </div>
+                                {alertError && (
+                                  <p className="text-xs text-red-500 font-medium">{alertError}</p>
+                                )}
+                                <button
+                                  id="set-alert-btn"
+                                  onClick={async () => {
+                                    if (!alertChatId.trim()) {
+                                      setAlertError("Please enter your Telegram Chat ID");
+                                      return;
+                                    }
+                                    setAlertLoading(true);
+                                    setAlertError("");
+                                    try {
+                                      await alertsAPI.create({
+                                        from: fromVal,
+                                        to: toVal,
+                                        date: dateVal || null,
+                                        seats: seatsVal || 1,
+                                        telegramChatId: alertChatId.trim(),
+                                      });
+                                      setAlertSuccess(true);
+                                    } catch (err) {
+                                      setAlertError(err.data?.message || "Failed to create alert");
+                                    } finally {
+                                      setAlertLoading(false);
+                                    }
+                                  }}
+                                  disabled={alertLoading}
+                                  className="w-full bg-primary hover:bg-primaryDark text-brandDark py-3 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
+                                >
+                                  {alertLoading ? "Setting Alert..." : "🔔 Set Alert"}
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
 
               {/* ─── Results ─── */}
               {!loading && !error && displayRides.length > 0 && (
                 <>
+
+                  {/* View Mode Toggle */}
+                  <div className="flex justify-end mb-8">
+                    <div className="inline-flex bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-1 border border-slate-200/60 dark:border-white/10 shadow-sm">
+                      <button
+                        onClick={() => setViewMode("list")}
+                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                          viewMode === "list"
+                            ? "bg-primary text-brandDark shadow-md"
+                            : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                        }`}
+                      >
+                        List View
+                      </button>
+                      <button
+                        onClick={() => setViewMode("map")}
+                        className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                          viewMode === "map"
+                            ? "bg-primary text-brandDark shadow-md"
+                            : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                        }`}
+                      >
+                        Map View
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <div>
                       <h2 className="text-2xl font-bold">{searchDone ? "Matching Rides" : "All Available Rides"}</h2>
@@ -435,75 +597,87 @@ function Search() {
                     </div>
                   </div>
 
-                  <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-4">
-                    {displayRides.map((ride) => (
-                      <motion.div key={ride._id} variants={fadeUp} whileHover={{ y: -3 }} className="group glass-card rounded-2xl p-6 hover:shadow-2xl hover:shadow-primary/5 border border-slate-200/50 dark:border-white/5">
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-                          {/* Driver Info */}
-                          <div className="flex items-center gap-4 lg:w-56 shrink-0">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-amber-100 dark:from-primary/10 dark:to-amber-900/20 flex items-center justify-center text-2xl shadow-inner">{ride.avatar}</div>
-                            <div>
-                              <p className="font-bold text-sm">{ride.driverName}</p>
-                              <Stars rating={ride.rating} />
-                              <p className="text-xs text-slate-400 mt-0.5">{ride.trips} trips</p>
-                            </div>
-                          </div>
-
-                          {/* Route */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="flex items-center gap-2 text-sm font-semibold">
-                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
-                                {ride.from}
+                  {viewMode === "list" ? (
+                    <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-4">
+                      {displayRides.map((ride) => (
+                        <motion.div key={ride._id} variants={fadeUp} whileHover={{ y: -3 }} className="group glass-card rounded-2xl p-6 hover:shadow-2xl hover:shadow-primary/5 border border-slate-200/50 dark:border-white/5">
+                          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                            {/* Driver Info */}
+                            <div className="flex items-center gap-4 lg:w-56 shrink-0">
+                              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-amber-100 dark:from-primary/10 dark:to-amber-900/20 flex items-center justify-center text-2xl shadow-inner overflow-hidden">
+                                {ride.avatar?.startsWith("http") ? (
+                                  <img src={ride.avatar} alt={ride.driverName} className="w-full h-full object-cover" />
+                                ) : (
+                                  ride.avatar || "🧑"
+                                )}
                               </div>
-                              <div className="flex-1 border-t-2 border-dashed border-slate-200 dark:border-white/10 relative mx-2">
-                                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-800 px-2 text-xs text-slate-400">→</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm font-semibold">
-                                <span className="w-2.5 h-2.5 rounded-full bg-red-400 shadow-sm shadow-red-400/50" />
-                                {ride.to}
+                              <div>
+                                <p className="font-bold text-sm">{ride.driverName}</p>
+                                <Stars rating={ride.rating} />
+                                <p className="text-xs text-slate-400 mt-0.5">{ride.trips} trips</p>
                               </div>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 mt-3">
-                              <VehicleBadge type={ride.vehicleType} />
-                              {ride.vehicle && <span className="text-xs text-slate-500 font-medium">{ride.vehicle}</span>}
-                              {ride.amenities?.length > 0 && <span className="text-slate-300 dark:text-slate-600">|</span>}
-                              {(ride.amenities || []).map((a) => (
-                                <AmenityBadge key={a} label={a} />
-                              ))}
-                            </div>
-                          </div>
 
-                          {/* Time & Price */}
-                          <div className="flex lg:flex-col items-center lg:items-end gap-4 lg:gap-1 lg:w-36 shrink-0">
-                            <div className="text-right">
-                              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">{ride.dateLabel}</p>
-                              <p className="text-lg font-bold">{ride.time}</p>
+                            {/* Route */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="flex items-center gap-2 text-sm font-semibold">
+                                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+                                  {ride.from}
+                                </div>
+                                <div className="flex-1 border-t-2 border-dashed border-slate-200 dark:border-white/10 relative mx-2">
+                                  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-800 px-2 text-xs text-slate-400">→</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm font-semibold">
+                                  <span className="w-2.5 h-2.5 rounded-full bg-red-400 shadow-sm shadow-red-400/50" />
+                                  {ride.to}
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 mt-3">
+                                <VehicleBadge type={ride.vehicleType} />
+                                {ride.vehicle && <span className="text-xs text-slate-500 font-medium">{ride.vehicle}</span>}
+                                {ride.amenities?.length > 0 && <span className="text-slate-300 dark:text-slate-600">|</span>}
+                                {(ride.amenities || []).map((a) => (
+                                  <AmenityBadge key={a} label={a} />
+                                ))}
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-2xl font-black text-gradient">₹{ride.price}</p>
-                              <p className="text-xs text-slate-400">per seat</p>
-                            </div>
-                          </div>
 
-                          {/* Action */}
-                          <div className="flex lg:flex-col items-center gap-3 lg:w-40 shrink-0">
-                            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${ride.seatsLeft > 0 ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10" : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10"}`}>
-                              {ride.seatsLeft > 0 ? `${ride.seatsLeft} seat${ride.seatsLeft > 1 ? "s" : ""} left` : "Full"}
-                            </span>
-                            <button
-                              id={`join-ride-${ride._id}`}
-                              onClick={() => handleJoinRide(ride._id)}
-                              disabled={joiningId === ride._id || ride.seatsLeft <= 0}
-                              className="w-full bg-primary hover:bg-primaryDark text-brandDark px-6 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {joiningId === ride._id ? "Joining..." : ride.seatsLeft <= 0 ? "Full" : "Join Ride"}
-                            </button>
+                            {/* Time & Price */}
+                            <div className="flex lg:flex-col items-center lg:items-end gap-4 lg:gap-1 lg:w-36 shrink-0">
+                              <div className="text-right">
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">{ride.dateLabel}</p>
+                                <p className="text-lg font-bold">{ride.time}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-2xl font-black text-gradient">₹{ride.price}</p>
+                                <p className="text-xs text-slate-400">per seat</p>
+                              </div>
+                            </div>
+
+                            {/* Action */}
+                            <div className="flex lg:flex-col items-center gap-3 lg:w-40 shrink-0">
+                              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${ride.seatsLeft > 0 ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10" : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10"}`}>
+                                {ride.seatsLeft > 0 ? `${ride.seatsLeft} seat${ride.seatsLeft > 1 ? "s" : ""} left` : "Full"}
+                              </span>
+                              <button
+                                id={`join-ride-${ride._id}`}
+                                onClick={() => handleJoinRide(ride._id)}
+                                disabled={joiningId === ride._id || ride.seatsLeft <= 0}
+                                className="w-full bg-primary hover:bg-primaryDark text-brandDark px-6 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {joiningId === ride._id ? "Joining..." : ride.seatsLeft <= 0 ? "Full" : "Join Ride"}
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </motion.div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  ) : (
+                    <div className="h-[600px] w-full rounded-3xl overflow-hidden shadow-2xl relative z-10">
+                      <RideMap rides={geocodedRides} />
+                    </div>
+                  )}
                 </>
               )}
             </motion.div>

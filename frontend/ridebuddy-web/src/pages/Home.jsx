@@ -206,9 +206,9 @@ function Home() {
                 <span className="text-primary font-bold uppercase tracking-widest text-sm mb-2">Fast Tracking</span>
                 <h3 className="text-3xl font-bold text-white mb-4">Airport Commute</h3>
                 <p className="text-gray-300 max-w-sm mb-6">Never miss a flight. Find reliable airport transfers and split the heavy fare with fellow travelers.</p>
-                <button className="text-primary font-bold flex items-center gap-2 group/btn">
+                <Link to="/search" className="text-primary font-bold flex items-center gap-2 group/btn">
                   Explore Rides <span className="group-hover/btn:translate-x-2 transition-transform">→</span>
-                </button>
+                </Link>
               </div>
             </motion.div>
 
@@ -223,9 +223,9 @@ function Home() {
                 <span className="text-accent font-bold uppercase tracking-widest text-sm mb-2">Daily Routine</span>
                 <h3 className="text-3xl font-bold text-white mb-4">Corporate Carpool</h3>
                 <p className="text-gray-300 max-w-sm mb-6">Make your daily office run productive and social. Save up to 60% on monthly fuel costs by riding together.</p>
-                <button className="text-accent font-bold flex items-center gap-2 group/btn">
+                <Link to="/search?tab=offer" className="text-accent font-bold flex items-center gap-2 group/btn">
                   Join a Pool <span className="group-hover/btn:translate-x-2 transition-transform">→</span>
-                </button>
+                </Link>
               </div>
             </motion.div>
           </div>
@@ -266,8 +266,8 @@ function Home() {
               The future of urban travel is shared.
             </p>
             <div className="flex justify-center gap-6">
-              <button className="btn-primary">Become a Member</button>
-              <button className="btn-secondary">Learn More</button>
+              <Link to="/signup" className="btn-primary">Become a Member</Link>
+              <Link to="/about" className="btn-secondary">Learn More</Link>
             </div>
           </motion.div>
         </div>

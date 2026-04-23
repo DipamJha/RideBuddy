@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { signup, login, getMe } = require("../controllers/authController");
+const jwt = require("jsonwebtoken");
+const passport = require("passport");
+const { signup, login, getMe, updateProfile, googleCallback } = require("../controllers/authController");
 const { protect } = require("../middlewares/auth");
 const { signupRules, loginRules, validate } = require("../utils/validators");
 
@@ -12,5 +14,22 @@ router.post("/login", loginRules, validate, login);
 
 // GET /api/auth/me (protected)
 router.get("/me", protect, getMe);
+
+// PUT /api/auth/profile (protected)
+router.put("/profile", protect, updateProfile);
+
+// ─── Google OAuth Routes ───
+// @desc    Initiate Google OAuth
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+// @desc    Google OAuth Callback
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login", session: false }),
+  googleCallback
+);
 
 module.exports = router;

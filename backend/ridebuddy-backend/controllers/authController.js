@@ -136,4 +136,63 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, getMe };
+/**
+ * @desc    Update user profile
+ * @route   PUT /api/auth/profile
+ */
+const updateProfile = async (req, res) => {
+  try {
+    const { firstName, lastName, avatar } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (avatar) user.avatar = avatar;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        avatar: user.avatar,
+        rating: user.rating,
+        trips: user.trips,
+        telegramChatId: user.telegramChatId,
+      },
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during profile update",
+    });
+  }
+};
+
+/**
+ * @desc    Google OAuth Callback handler
+ */
+const googleCallback = async (req, res) => {
+  try {
+    // req.user is populated by passport
+    if (!req.user) {
+      return res.redirect("http://localhost:5173/login?error=oauth_failed");
+    }
+
+    // Generate token
+    const token = generateToken(req.user._id);
+
+    // Redirect to frontend with token
+    res.redirect(`http://localhost:5173/login?token=${token}`);
+  } catch (error) {
+    console.error("Google callback error:", error);
+    res.redirect("http://localhost:5173/login?error=server_error");
+  }
+};
+
+module.exports = { signup, login, getMe, updateProfile, googleCallback };

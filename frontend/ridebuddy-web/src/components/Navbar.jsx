@@ -28,11 +28,13 @@ function Navbar() {
     { name: "Home", path: "/" },
     { name: "Search", path: "/search" },
     { name: "Offer Ride", path: "/search?tab=offer" },
+    ...(user ? [{ name: "My Rides", path: "/my-rides" }] : []),
   ];
 
   const isActive = (linkPath) => {
     if (linkPath === "/search" && pathname === "/search" && !search.includes("tab=offer")) return true;
     if (linkPath === "/search?tab=offer" && fullPath.includes("/search") && search.includes("tab=offer")) return true;
+    if (linkPath === "/my-rides" && pathname === "/my-rides") return true;
     if (linkPath === "/" && pathname === "/") return true;
     return false;
   };
@@ -83,8 +85,12 @@ function Navbar() {
                   onClick={() => setShowMenu(!showMenu)}
                   className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-amber-100 dark:from-primary/10 dark:to-amber-900/20 flex items-center justify-center text-lg shadow-inner border border-primary/20">
-                    {user.avatar || "🧑"}
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-amber-100 dark:from-primary/10 dark:to-amber-900/20 flex items-center justify-center text-lg shadow-inner border border-primary/20 overflow-hidden">
+                    {user.avatar?.startsWith("http") ? (
+                      <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
+                    ) : (
+                      user.avatar || "🧑"
+                    )}
                   </div>
                   <div className="hidden sm:block text-left">
                     <p className="text-sm font-bold leading-tight">{user.firstName}</p>
@@ -108,11 +114,18 @@ function Navbar() {
                     </div>
                     <div className="p-2">
                       <Link
-                        to="/search"
+                        to="/my-rides"
                         onClick={() => setShowMenu(false)}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5"
                       >
                         🚗 My Rides
+                      </Link>
+                      <Link
+                        to="/profile"
+                        onClick={() => setShowMenu(false)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5"
+                      >
+                        ⚙️ Profile
                       </Link>
                       <button
                         onClick={handleLogout}

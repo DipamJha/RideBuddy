@@ -43,6 +43,14 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    numReviews: {
+      type: Number,
+      default: 0,
+    },
+    telegramChatId: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

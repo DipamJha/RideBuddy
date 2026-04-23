@@ -1,4 +1,6 @@
 const Ride = require("../models/Ride");
+const RideAlert = require("../models/RideAlert");
+const { sendRideAlert, sendNotification } = require("../services/telegramBot");
 
 /**
  * @desc    Create a new ride (offer a ride)
@@ -24,6 +26,35 @@ const createRide = async (req, res) => {
 
     // Populate driver info before sending response
     await ride.populate("driver", "firstName lastName avatar rating trips");
+
+    // ─── Trigger matching ride alerts ───
+    try {
+      const matchingAlerts = await RideAlert.find({
+        from: { $regex: ride.from, $options: "i" },
+        to: { $regex: ride.to, $options: "i" },
+        status: "active",
+        expiresAt: { $gt: new Date() },
+      });
+
+      for (const alert of matchingAlerts) {
+        try {
+          await sendRideAlert(alert.telegramChatId, ride, alert._id);
+          alert.status = "triggered";
+          alert.triggeredRide = ride._id;
+          await alert.save();
+          console.log(`🔔 Alert triggered for ${alert.from} → ${alert.to} (Chat: ${alert.telegramChatId})`);
+        } catch (alertErr) {
+          console.error("Failed to send alert:", alertErr.message);
+        }
+      }
+
+      if (matchingAlerts.length > 0) {
+        console.log(`📢 ${matchingAlerts.length} Telegram alert(s) sent for ride ${ride.from} → ${ride.to}`);
+      }
+    } catch (alertError) {
+      // Don't fail ride creation if alerts fail
+      console.error("Alert matching error:", alertError);
+    }
 
     res.status(201).json({
       success: true,
@@ -63,12 +94,11 @@ const searchRides = async (req, res) => {
       filter.date = { $gte: searchDate, $lt: nextDay };
     }
 
-    // Available seats filter
-    if (seats) {
-      filter.$expr = {
-        $gte: [{ $subtract: ["$seats", "$seatsBooked"] }, parseInt(seats)],
-      };
-    }
+    // Available seats filter (default to at least 1 seat available)
+    const requestedSeats = seats ? parseInt(seats) : 1;
+    filter.$expr = {
+      $gte: [{ $subtract: ["$seats", "$seatsBooked"] }, requestedSeats],
+    };
 
     // Status filter (default to active rides only)
     filter.status = status || "active";
@@ -172,11 +202,45 @@ const joinRide = async (req, res) => {
     // Add passenger and increment seats booked
     ride.passengers.push(req.user._id);
     ride.seatsBooked += 1;
+
+    // Mark as full if no seats left
+    if (ride.seatsBooked >= ride.seats) {
+      ride.status = "full";
+    }
+
     await ride.save();
 
     // Populate and return updated ride
-    await ride.populate("driver", "firstName lastName avatar rating trips");
+    await ride.populate("driver", "firstName lastName avatar rating trips telegramChatId");
     await ride.populate("passengers", "firstName lastName avatar");
+
+    // 📢 Notify driver via Telegram if they have linked their account
+    if (ride.driver.telegramChatId) {
+      const seatsLeft = ride.seats - ride.seatsBooked;
+      const dateStr = new Date(ride.date).toLocaleDateString("en-IN", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+      });
+
+      let driverMsg = `🆕 *New Passenger!*\n\n` +
+        `*${req.user.firstName} ${req.user.lastName || ""}* just booked a seat on your ride (via Web):\n\n` +
+        `📍 *${ride.from}* → *${ride.to}*\n` +
+        `📅 ${dateStr} at ${ride.time}\n` +
+        `💺 ${seatsLeft} seat${seatsLeft !== 1 ? "s" : ""} remaining\n\n`;
+
+      if (seatsLeft === 0) {
+        driverMsg += `🎉 *Your ride is now FULL!*\nHave a safe journey! 🚗✨`;
+      } else {
+        driverMsg += `Check your dashboard for details. 📋`;
+      }
+
+      try {
+        await sendNotification(ride.driver.telegramChatId, driverMsg);
+      } catch (err) {
+        console.error("Failed to send driver notification:", err.message);
+      }
+    }
 
     res.json({
       success: true,
@@ -225,4 +289,71 @@ const getMyRides = async (req, res) => {
   }
 };
 
-module.exports = { createRide, searchRides, getRideById, joinRide, getMyRides };
+/**
+ * @desc    Cancel a joined ride as a passenger
+ * @route   POST /api/rides/:id/cancel
+ * @access  Private
+ */
+const cancelJoinedRide = async (req, res) => {
+  try {
+    const ride = await Ride.findById(req.params.id)
+      .populate("driver", "firstName lastName telegramChatId");
+
+    if (!ride) {
+      return res.status(404).json({ success: false, message: "Ride not found" });
+    }
+
+    if (!ride.passengers.includes(req.user._id)) {
+      return res.status(400).json({ success: false, message: "You are not a passenger on this ride" });
+    }
+
+    const timeParts = ride.time.split(":");
+    let hours = parseInt(timeParts[0]);
+    let minutes = parseInt(timeParts[1]);
+
+    if (ride.time.toLowerCase().includes("pm") && hours < 12) hours += 12;
+    if (ride.time.toLowerCase().includes("am") && hours === 12) hours = 0;
+
+    const rideDateObj = new Date(ride.date);
+    rideDateObj.setHours(hours, minutes, 0, 0);
+
+    const timeDiffMs = rideDateObj.getTime() - Date.now();
+    const threeHoursMs = 3 * 60 * 60 * 1000;
+
+    if (timeDiffMs < threeHoursMs) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "You cannot cancel a ride within 3 hours of departure." 
+      });
+    }
+
+    ride.passengers = ride.passengers.filter(p => p.toString() !== req.user._id.toString());
+    ride.seatsBooked -= 1;
+    if (ride.status === "full") {
+      ride.status = "active";
+    }
+
+    await ride.save();
+
+    if (ride.driver.telegramChatId) {
+      const dateStr = new Date(ride.date).toLocaleDateString("en-IN", {
+        weekday: "short", day: "numeric", month: "short"
+      });
+      const seatsLeft = ride.seats - ride.seatsBooked;
+      const driverMsg = `⚠️ *Ride Cancellation!*\n\n*${req.user.firstName} ${req.user.lastName || ""}* has cancelled their booking on your ride:\n\n📍 *${ride.from}* → *${ride.to}*\n📅 ${dateStr} at ${ride.time}\n\nYour ride now has ${seatsLeft} seat${seatsLeft !== 1 ? "s" : ""} available.`;
+      
+      try {
+        await sendNotification(ride.driver.telegramChatId, driverMsg);
+      } catch (err) {
+        console.error("Failed to notify driver of cancellation:", err);
+      }
+    }
+
+    res.json({ success: true, message: "Ride cancelled successfully", ride });
+  } catch (error) {
+    console.error("Cancel ride error:", error);
+    res.status(500).json({ success: false, message: "Server error while cancelling ride" });
+  }
+};
+
+module.exports = { createRide, searchRides, getRideById, joinRide, getMyRides, cancelJoinedRide };

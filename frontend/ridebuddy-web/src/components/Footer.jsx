@@ -36,28 +36,28 @@ function Footer() {
             <ul className="space-y-4 text-slate-600 dark:text-slate-400 text-sm">
               <li className="hover:text-primary transition-colors"><Link to="/search">Find Rides</Link></li>
               <li className="hover:text-primary transition-colors"><Link to="/search?tab=offer">Offer a Ride</Link></li>
-              <li className="hover:text-primary transition-colors">Route Planning</li>
-              <li className="hover:text-primary transition-colors">Pricing</li>
+              <li className="hover:text-primary transition-colors"><Link to="/route-planning">Route Planning</Link></li>
+              <li className="hover:text-primary transition-colors"><Link to="/pricing">Pricing</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-sm uppercase tracking-widest mb-6">Company</h4>
             <ul className="space-y-4 text-slate-600 dark:text-slate-400 text-sm">
-              <li className="hover:text-primary transition-colors">Our Mission</li>
-              <li className="hover:text-primary transition-colors">Safety</li>
-              <li className="hover:text-primary transition-colors">Terms of Service</li>
-              <li className="hover:text-primary transition-colors">Privacy Policy</li>
+              <li className="hover:text-primary transition-colors"><Link to="/about">Our Mission</Link></li>
+              <li className="hover:text-primary transition-colors"><Link to="/safety">Safety</Link></li>
+              <li className="hover:text-primary transition-colors"><Link to="/terms">Terms of Service</Link></li>
+              <li className="hover:text-primary transition-colors"><Link to="/privacy">Privacy Policy</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-sm uppercase tracking-widest mb-6">Support</h4>
             <ul className="space-y-4 text-slate-600 dark:text-slate-400 text-sm">
-              <li className="hover:text-primary transition-colors">Help Center</li>
-              <li className="hover:text-primary transition-colors">Contact Us</li>
-              <li className="hover:text-primary transition-colors">Telegram Bot</li>
-              <li className="hover:text-primary transition-colors">Community</li>
+              <li className="hover:text-primary transition-colors"><Link to="/help">Help Center</Link></li>
+              <li className="hover:text-primary transition-colors"><Link to="/contact">Contact Us</Link></li>
+              <li className="hover:text-primary transition-colors"><a href="https://t.me/RideBuddyBot" target="_blank" rel="noreferrer">Telegram Bot</a></li>
+              <li className="hover:text-primary transition-colors"><Link to="/community">Community</Link></li>
             </ul>
           </div>
         </div>

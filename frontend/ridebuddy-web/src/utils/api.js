@@ -41,6 +41,8 @@ export const authAPI = {
     apiFetch("/auth/login", { method: "POST", body: JSON.stringify(body) }),
 
   getMe: () => apiFetch("/auth/me"),
+  updateProfile: (body) =>
+    apiFetch("/auth/profile", { method: "PUT", body: JSON.stringify(body) }),
 };
 
 /* ─── Rides API ─── */
@@ -55,13 +57,32 @@ export const ridesAPI = {
   },
 
   getById: (id) => apiFetch(`/rides/${id}`),
-
+  cancelRide: (id) => apiFetch(`/rides/${id}/cancel`, { method: "POST" }),
+  
   create: (body) =>
     apiFetch("/rides", { method: "POST", body: JSON.stringify(body) }),
 
   join: (id) => apiFetch(`/rides/${id}/join`, { method: "POST" }),
 
   getMyRides: () => apiFetch("/rides/my"),
+};
+
+/* ─── Alerts API ─── */
+export const alertsAPI = {
+  create: (body) =>
+    apiFetch("/alerts", { method: "POST", body: JSON.stringify(body) }),
+
+  getMy: () => apiFetch("/alerts/my"),
+
+  delete: (id) => apiFetch(`/alerts/${id}`, { method: "DELETE" }),
+};
+
+/* ─── Reviews API ─── */
+export const reviewsAPI = {
+  create: (body) =>
+    apiFetch("/reviews", { method: "POST", body: JSON.stringify(body) }),
+
+  getByDriver: (driverId) => apiFetch(`/reviews/driver/${driverId}`),
 };
 
 /* ─── Auth Helpers ─── */
