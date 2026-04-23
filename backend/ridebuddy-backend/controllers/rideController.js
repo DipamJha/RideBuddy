@@ -1,5 +1,6 @@
 const Ride = require("../models/Ride");
 const RideAlert = require("../models/RideAlert");
+const User = require("../models/User");
 const { sendRideAlert, sendNotification } = require("../services/telegramBot");
 
 /**
@@ -9,7 +10,16 @@ const { sendRideAlert, sendNotification } = require("../services/telegramBot");
  */
 const createRide = async (req, res) => {
   try {
-    const { from, to, date, time, seats, price, vehicle, vehicleType, amenities } = req.body;
+    const { from, to, date, time, seats, price, vehicle, vehicleType, amenities, telegramChatId } = req.body;
+
+    // Link telegramChatId to user profile if provided and not already saved
+    if (telegramChatId) {
+      const user = await User.findById(req.user._id);
+      if (user && !user.telegramChatId) {
+        user.telegramChatId = telegramChatId;
+        await user.save();
+      }
+    }
 
     const ride = await Ride.create({
       driver: req.user._id,

@@ -93,8 +93,18 @@ export const saveAuth = (token, user) => {
 };
 
 export const getUser = () => {
-  const raw = localStorage.getItem("ridebuddy_user");
-  return raw ? JSON.parse(raw) : null;
+  const user = localStorage.getItem("ridebuddy_user");
+  return user ? JSON.parse(user) : null;
+};
+
+export const updateUserLocal = (newData) => {
+  const user = getUser();
+  if (user) {
+    const updated = { ...user, ...newData };
+    localStorage.setItem("ridebuddy_user", JSON.stringify(updated));
+    return updated;
+  }
+  return null;
 };
 
 export const getToken = () => {

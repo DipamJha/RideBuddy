@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ridesAPI, alertsAPI, isLoggedIn, getUser } from "../utils/api";
+import { ridesAPI, alertsAPI, isLoggedIn, getUser, updateUserLocal } from "../utils/api";
 import RideMap from "../components/RideMap";
 import { geocodeRides } from "../utils/geocoding";
 
@@ -149,14 +149,21 @@ function Search() {
   const [alertLoading, setAlertLoading] = useState(false);
   const [alertSuccess, setAlertSuccess] = useState(false);
   const [alertError, setAlertError] = useState("");
+  const [isTgLinked, setIsTgLinked] = useState(false);
 
-  // Sync tab from URL query param
+  // Sync tab from URL query param and pre-fill Telegram
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab === "offer") {
       setActiveTab("offer");
     } else {
       setActiveTab("find");
+    }
+
+    const user = getUser();
+    if (user?.telegramChatId) {
+      setAlertChatId(user.telegramChatId);
+      setIsTgLinked(true);
     }
   }, [searchParams]);
 
@@ -241,7 +248,19 @@ function Search() {
     setOfferLoading(true);
     setOfferError("");
     try {
-      await ridesAPI.create(offerForm);
+      const user = getUser();
+      const payload = { ...offerForm };
+      if (user && !user.telegramChatId && offerForm.telegramChatId) {
+        payload.telegramChatId = offerForm.telegramChatId;
+      }
+      
+      await ridesAPI.create(payload);
+      
+      // Update local user if TG was linked
+      if (payload.telegramChatId) {
+        updateUserLocal({ telegramChatId: payload.telegramChatId });
+      }
+
       setOfferSubmitted(true);
       setOfferForm({
         from: "",
@@ -472,7 +491,16 @@ function Search() {
                             <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl"></div>
                             <div>
                               <h4 className="font-bold text-sm">Get Telegram Notifications</h4>
-                              <p className="text-xs text-slate-400">We'll auto-book when a ride matches!</p>
+                              <p className="text-xs text-slate-400">
+                                {isTgLinked ? (
+                                  <span className="text-emerald-500 font-bold flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    Connected & Ready
+                                  </span>
+                                ) : (
+                                  "We'll auto-book when a ride matches!"
+                                )}
+                              </p>
                             </div>
                           </div>
 
@@ -496,23 +524,25 @@ function Search() {
                                     className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium placeholder:text-slate-400"
                                   />
                                 </div>
-                                <div className="bg-blue-50 dark:bg-blue-500/5 rounded-xl p-3 border border-blue-100 dark:border-blue-500/10">
-                                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">💡 How to get your Chat ID:</p>
-                                  <ol className="text-xs text-blue-500/80 mt-1 space-y-0.5 list-decimal list-inside">
-                                    <li>
-                                      <a 
-                                        href={`https://t.me/RideBuddyBot?start=${getUser()?.id}`} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="underline hover:text-primary font-bold"
-                                      >
-                                        Click here to open @RideBuddyBot
-                                      </a>
-                                    </li>
-                                    <li>Send <code className="bg-blue-100 dark:bg-blue-500/10 px-1 rounded">/start</code></li>
-                                    <li>Copy the Chat ID the bot gives you (or check if it's already auto-linked!)</li>
-                                  </ol>
-                                </div>
+                                {!isTgLinked && (
+                                  <div className="bg-blue-50 dark:bg-blue-500/5 rounded-xl p-3 border border-blue-100 dark:border-blue-500/10">
+                                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">💡 How to get your Chat ID:</p>
+                                    <ol className="text-xs text-blue-500/80 mt-1 space-y-0.5 list-decimal list-inside">
+                                      <li>
+                                        <a 
+                                          href={`https://t.me/RideBuddyBot?start=${getUser()?.id}`} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="underline hover:text-primary font-bold"
+                                        >
+                                          Click here to open @RideBuddyBot
+                                        </a>
+                                      </li>
+                                      <li>Send <code className="bg-blue-100 dark:bg-blue-500/10 px-1 rounded">/start</code></li>
+                                      <li>Copy the Chat ID the bot gives you</li>
+                                    </ol>
+                                  </div>
+                                )}
                                 {alertError && (
                                   <p className="text-xs text-red-500 font-medium">{alertError}</p>
                                 )}
@@ -533,6 +563,10 @@ function Search() {
                                         seats: seatsVal || 1,
                                         telegramChatId: alertChatId.trim(),
                                       });
+
+                                      // Update local user state so profile/navbar show linked
+                                      updateUserLocal({ telegramChatId: alertChatId.trim() });
+
                                       setAlertSuccess(true);
                                     } catch (err) {
                                       setAlertError(err.data?.message || "Failed to create alert");
@@ -778,6 +812,33 @@ function Search() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Telegram Field (If not linked) */}
+                  {isLoggedIn() && !getUser()?.telegramChatId && (
+                    <div className="bg-blue-500/5 p-6 rounded-2xl border border-blue-500/20">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl"></div>
+                        <div>
+                          <h4 className="font-bold text-sm">Link Telegram for Alerts</h4>
+                          <p className="text-xs text-slate-400">Get notified when someone joins your ride!</p>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Your Telegram Chat ID</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 123456789"
+                          value={offerForm.telegramChatId || ""}
+                          onChange={(e) => setOfferForm({ ...offerForm, telegramChatId: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-medium"
+                        />
+                        <p className="text-[10px] text-slate-400 mt-2">
+                          💡 Need your ID? Send <code className="bg-blue-100 dark:bg-blue-500/10 px-1 rounded">/start</code> to{" "}
+                          <a href="https://t.me/RideBuddyBot" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">@RideBuddyBot</a>
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Amenities */}
                   <div>

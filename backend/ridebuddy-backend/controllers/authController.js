@@ -46,6 +46,7 @@ const signup = async (req, res) => {
         avatar: user.avatar,
         rating: user.rating,
         trips: user.trips,
+        telegramChatId: user.telegramChatId,
       },
     });
   } catch (error) {
@@ -103,6 +104,7 @@ const login = async (req, res) => {
         avatar: user.avatar,
         rating: user.rating,
         trips: user.trips,
+        telegramChatId: user.telegramChatId,
       },
     });
   } catch (error) {
@@ -131,6 +133,7 @@ const getMe = async (req, res) => {
         avatar: user.avatar,
         rating: user.rating,
         trips: user.trips,
+        telegramChatId: user.telegramChatId,
       },
     });
   } catch (error) {

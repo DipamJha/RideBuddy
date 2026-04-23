@@ -40,6 +40,7 @@ const Profile = () => {
         firstName: userRes.user.firstName,
         lastName: userRes.user.lastName || "",
         avatar: userRes.user.avatar || "",
+        telegramChatId: userRes.user.telegramChatId || "",
       });
     } catch (err) {
       console.error("Fetch profile error:", err);
@@ -178,14 +179,35 @@ const Profile = () => {
                   <p className="text-xs text-slate-500 leading-relaxed">
                     Link your Telegram to get instant ride alerts and auto-book rides.
                   </p>
-                  <a 
-                    href={`https://t.me/RideBuddyBot?start=${user.id}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="block w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-center text-xs font-bold transition-all shadow-lg shadow-blue-500/20"
-                  >
-                    Connect Telegram
-                  </a>
+                  
+                  <div className="space-y-2">
+                    <input 
+                      type="text"
+                      placeholder="Enter Chat ID (e.g. 1234567)"
+                      value={formData.telegramChatId || ""}
+                      onChange={(e) => setFormData({...formData, telegramChatId: e.target.value})}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:border-blue-500 outline-none text-xs font-medium"
+                    />
+                    <button 
+                      onClick={handleUpdateProfile}
+                      disabled={saving || !formData.telegramChatId}
+                      className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-center text-xs font-bold transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50"
+                    >
+                      {saving ? "Linking..." : "Link Chat ID"}
+                    </button>
+                  </div>
+
+                  <div className="pt-2 border-t border-white/5">
+                    <p className="text-[10px] text-slate-500 mb-2 font-bold uppercase tracking-tighter">Don't have an ID?</p>
+                    <a 
+                      href={`https://t.me/RideBuddyBot?start=${user._id}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="block w-full py-2 border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 rounded-xl text-center text-[10px] font-black uppercase tracking-widest transition-all"
+                    >
+                      Get ID from Bot
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
