@@ -46,18 +46,23 @@ function initBot() {
       }
     }
 
+    const frontendUrl = process.env.FRONTEND_URL || "https://ride-buddy-cyan.vercel.app";
+    
     // Default /start response
     bot.sendMessage(
       chatId,
       `🚗 *Welcome to RideBuddy Bot!*\n\n` +
         `Your Chat ID is: \`${chatId}\`\n\n` +
         `📋 *How to get started:*\n` +
-        `1. Copy your Chat ID above\n` +
-        `2. Go to RideBuddy website\n` +
-        `3. Search for a ride → Click "Notify Me"\n` +
-        `4. Paste your Chat ID\n\n` +
-        `You'll receive instant notifications when matching rides become available! 🔔`,
-      { parse_mode: "Markdown" }
+        `Click the button below to sign in and automatically link your account, or copy your Chat ID and paste it in your profile!`,
+      { 
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "🔗 Login & Link Account", url: `${frontendUrl}/login?tg_chat_id=${chatId}` }]
+          ]
+        }
+      }
     );
   });
 

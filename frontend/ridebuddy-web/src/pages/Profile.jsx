@@ -112,8 +112,16 @@ const Profile = () => {
             {user.firstName} <span className="text-gradient">{user.lastName}</span>
           </h1>
           <p className="text-slate-500 font-medium">{user.email}</p>
-          <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest border border-primary/20">
-            Verified Member
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <div className="px-4 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20">
+              Verified Member
+            </div>
+            {user.telegramChatId && (
+              <div className="px-4 py-1.5 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase tracking-widest border border-blue-500/20 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                Telegram Linked
+              </div>
+            )}
           </div>
         </motion.div>
 

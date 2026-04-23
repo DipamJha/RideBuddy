@@ -28,7 +28,8 @@ const signup = async (req, res) => {
     }
 
     // Create user (password is hashed via pre-save hook)
-    const user = await User.create({ firstName, lastName, email, password });
+    const { telegramChatId } = req.body;
+    const user = await User.create({ firstName, lastName, email, password, telegramChatId });
 
     // Generate token
     const token = generateToken(user._id);
@@ -82,7 +83,12 @@ const login = async (req, res) => {
       });
     }
 
-    // Increment trip count is not applicable here — just generate token
+    // Link telegram if provided
+    if (req.body.telegramChatId && !user.telegramChatId) {
+      user.telegramChatId = req.body.telegramChatId;
+      await user.save();
+    }
+
     const token = generateToken(user._id);
 
     res.json({
@@ -148,6 +154,7 @@ const updateProfile = async (req, res) => {
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (avatar) user.avatar = avatar;
+    if (req.body.telegramChatId) user.telegramChatId = req.body.telegramChatId;
 
     await user.save();
 
@@ -190,7 +197,15 @@ const googleCallback = async (req, res) => {
 
     // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    res.redirect(`${frontendUrl}/login?token=${token}`);
+    const tgChatId = req.session.tg_chat_id;
+    
+    let redirectUrl = `${frontendUrl}/login?token=${token}`;
+    if (tgChatId) {
+      redirectUrl += `&tg_chat_id=${tgChatId}`;
+      delete req.session.tg_chat_id; // Clean up
+    }
+    
+    res.redirect(redirectUrl);
   } catch (error) {
     console.error("Google callback error:", error);
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";

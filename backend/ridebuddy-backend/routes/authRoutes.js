@@ -22,6 +22,12 @@ router.put("/profile", protect, updateProfile);
 // @desc    Initiate Google OAuth
 router.get(
   "/google",
+  (req, res, next) => {
+    if (req.query.tg_chat_id) {
+      req.session.tg_chat_id = req.query.tg_chat_id;
+    }
+    next();
+  },
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 

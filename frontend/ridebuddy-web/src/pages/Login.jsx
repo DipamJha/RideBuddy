@@ -19,14 +19,27 @@ function Login() {
   // Handle Google OAuth Callback
   useEffect(() => {
     const token = searchParams.get("token");
+    const tgChatId = searchParams.get("tg_chat_id");
+    
     if (token) {
       setLoading(true);
-      // Fetch user data with the token
       localStorage.setItem("ridebuddy_token", token);
+      
       authAPI.getMe()
         .then(data => {
-          saveAuth(token, data.user);
-          navigate("/search");
+          // If we have a tgChatId, let's link it now
+          if (tgChatId && !data.user.telegramChatId) {
+             authAPI.updateProfile({ telegramChatId: tgChatId }).then(updateRes => {
+               saveAuth(token, updateRes.user);
+               navigate("/search");
+             }).catch(() => {
+               saveAuth(token, data.user);
+               navigate("/search");
+             });
+          } else {
+            saveAuth(token, data.user);
+            navigate("/search");
+          }
         })
         .catch(err => {
           setError("Google login failed. Please try again.");
@@ -47,7 +60,8 @@ function Login() {
     setError("");
 
     try {
-      const data = await authAPI.login(form);
+      const tgChatId = searchParams.get("tg_chat_id");
+      const data = await authAPI.login({ ...form, telegramChatId: tgChatId });
       saveAuth(data.token, data.user);
       navigate("/search");
     } catch (err) {
@@ -124,7 +138,8 @@ function Login() {
               type="button"
               onClick={() => {
                 const backendUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-                window.location.href = `${backendUrl}/api/auth/google`;
+                const tgChatId = searchParams.get("tg_chat_id");
+                window.location.href = `${backendUrl}/api/auth/google${tgChatId ? `?tg_chat_id=${tgChatId}` : ""}`;
               }}
               className="w-full glass-card flex items-center justify-center gap-3 py-3.5 rounded-xl hover:border-primary/30 font-medium text-sm transition-all"
             >
