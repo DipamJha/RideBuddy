@@ -95,13 +95,18 @@ const searchRides = async (req, res) => {
     if (from) filter.from = { $regex: from, $options: "i" };
     if (to) filter.to = { $regex: to, $options: "i" };
 
-    // Date filter (rides on or after the given date)
+    // Date filter — only show rides that haven't passed yet
     if (date) {
       const searchDate = new Date(date);
       searchDate.setHours(0, 0, 0, 0);
       const nextDay = new Date(searchDate);
       nextDay.setDate(nextDay.getDate() + 1);
       filter.date = { $gte: searchDate, $lt: nextDay };
+    } else {
+      // No date specified → default to today and future rides only
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      filter.date = { $gte: today };
     }
 
     // Available seats filter (default to at least 1 seat available)
@@ -113,11 +118,29 @@ const searchRides = async (req, res) => {
     // Status filter (default to active rides only)
     filter.status = status || "active";
 
-    const rides = await Ride.find(filter)
+    let rides = await Ride.find(filter)
       .populate("driver", "firstName lastName avatar rating trips")
       .populate("passengers", "firstName lastName avatar")
       .sort({ date: 1, time: 1 })
-      .limit(20);
+      .limit(50);
+
+    // Filter out rides whose date+time has already passed (handles today's expired rides)
+    const now = new Date();
+    rides = rides.filter((ride) => {
+      const rideDateObj = new Date(ride.date);
+      const timeParts = ride.time.split(":");
+      let hours = parseInt(timeParts[0]);
+      let minutes = parseInt(timeParts[1]) || 0;
+
+      if (ride.time.toLowerCase().includes("pm") && hours < 12) hours += 12;
+      if (ride.time.toLowerCase().includes("am") && hours === 12) hours = 0;
+
+      rideDateObj.setHours(hours, minutes, 0, 0);
+      return rideDateObj.getTime() > now.getTime();
+    });
+
+    // Return only the top 20 after filtering
+    rides = rides.slice(0, 20);
 
     res.json({
       success: true,
@@ -182,6 +205,21 @@ const joinRide = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "This ride is no longer available",
+      });
+    }
+
+    // Check if ride departure has already passed
+    const timeParts = ride.time.split(":");
+    let depHours = parseInt(timeParts[0]);
+    let depMinutes = parseInt(timeParts[1]) || 0;
+    if (ride.time.toLowerCase().includes("pm") && depHours < 12) depHours += 12;
+    if (ride.time.toLowerCase().includes("am") && depHours === 12) depHours = 0;
+    const departureDateObj = new Date(ride.date);
+    departureDateObj.setHours(depHours, depMinutes, 0, 0);
+    if (departureDateObj.getTime() <= Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: "This ride has already departed",
       });
     }
 
