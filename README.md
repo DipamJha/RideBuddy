@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/framer/motion/main/packages/framer-motion/logo.svg" alt="RideBuddy" width="120" />
+  <!-- <img src="https://raw.githubusercontent.com/framer/motion/main/packages/framer-motion/logo.svg" alt="RideBuddy" width="120" /> -->
   <h1>RideBuddy</h1>
   <p><strong>A Real-Time, Hybrid Web & Telegram Ride-Sharing Ecosystem</strong></p>
 </div>
