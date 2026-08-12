@@ -8,17 +8,17 @@
 
 **RideBuddy** reimagines the commuting experience by combining a beautifully animated, premium web dashboard with a fully automated, two-way conversational Telegram bot. Find a ride, offer a seat, get instant route alerts, and manage your trips from anywhere—all synced in real time.
 
-## ✨ Key Features
+##  Key Features
 
-- 🤖 **Conversational Telegram Bot:** Skip the app. Type `/offer` or `/search` to create and book rides via a smooth, conversational flow directly in your Telegram chat.
-- 🔔 **Intelligent Route Alerts:** Save your frequent routes on the web dashboard. The moment a matching ride is created (either from the web or Telegram), you receive a push notification with a 1-click **Book Now** button.
-- 🔒 **Secure Booking Ecosystem:**
+-  **Conversational Telegram Bot:** Skip the app. Type `/offer` or `/search` to create and book rides via a smooth, conversational flow directly in your Telegram chat.
+-  **Intelligent Route Alerts:** Save your frequent routes on the web dashboard. The moment a matching ride is created (either from the web or Telegram), you receive a push notification with a 1-click **Book Now** button.
+-  **Secure Booking Ecosystem:**
   - Automated capacity handling: Rides instantly switch to "Full" when the last seat is taken.
   - Smart constraints: Built-in 3-hour departure protection prevents last-minute cancellations to protect drivers.
-- 🎨 **Premium Glassmorphic UI:** A state-of-the-art React frontend utilizing Tailwind CSS and Framer Motion. Features a 50/50 split-screen hero layout, fluid page transitions, dynamic custom gradients, and micro-animations.
-- ⭐️ **Community Trust System:** Rate drivers and view their total trips to ensure a safe and reliable community.
+-  **Premium Glassmorphic UI:** A state-of-the-art React frontend utilizing Tailwind CSS and Framer Motion. Features a 50/50 split-screen hero layout, fluid page transitions, dynamic custom gradients, and micro-animations.
+-  **Community Trust System:** Rate drivers and view their total trips to ensure a safe and reliable community.
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 **Frontend Architecture:**
 - **Framework:** React 18 (Vite)
@@ -80,7 +80,7 @@ npm run dev
 
 ---
 
-## 🤖 Telegram Bot Commands
+## Telegram Bot Commands
 
 Once your account is linked, you can manage your rides entirely via text:
 - `/offer` - Start a conversational flow to offer a new ride.
