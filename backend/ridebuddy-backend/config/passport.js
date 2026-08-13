@@ -45,7 +45,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     )
   );
 } else {
-  console.warn("⚠️ Google OAuth credentials missing. OAuth feature disabled.");
+  console.warn("Google OAuth credentials missing. OAuth feature disabled.");
 }
 
 passport.serializeUser((user, done) => {
