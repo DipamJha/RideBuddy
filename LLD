@@ -1,0 +1,158 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+// Vehicle
+class Vehicle {
+public:
+    string number;
+    string model;
+
+    Vehicle(string number, string model) {
+        this->number = number;
+        this->model = model;
+    }
+};
+
+// User
+class User {
+public:
+    int id;
+    string name;
+    Vehicle* vehicle;
+
+    User(int id, string name) {
+        this->id = id;
+        this->name = name;
+        vehicle = nullptr;
+    }
+
+    void addVehicle(Vehicle* v) {
+        vehicle = v;
+    }
+};
+
+// Ride
+class Ride {
+public:
+    int id;
+    User* driver;
+    string source, destination;
+    int seats;
+    double fare;
+
+    Ride(int id, User* driver, string source,
+         string destination, int seats, double fare) {
+
+        this->id = id;
+        this->driver = driver;
+        this->source = source;
+        this->destination = destination;
+        this->seats = seats;
+        this->fare = fare;
+    }
+
+    bool addPassenger() {
+        if (seats > 0) {
+            seats--;
+            return true;
+        }
+        return false;
+    }
+};
+
+// Ride Request
+class RideRequest {
+public:
+    User* passenger;
+    Ride* ride;
+    bool accepted;
+
+    RideRequest(User* passenger, Ride* ride) {
+        this->passenger = passenger;
+        this->ride = ride;
+        accepted = false;
+    }
+
+    void accept() {
+        if (ride->addPassenger()) {
+            accepted = true;
+        }
+    }
+};
+
+// Notification abstraction
+class NotificationProvider {
+public:
+    virtual void send(string message) = 0;
+};
+
+class Telegram : public NotificationProvider {
+public:
+    void send(string message) override {
+        cout << "Telegram: " << message << endl;
+    }
+};
+
+// Ride Service
+class RideService {
+public:
+
+    Ride* createRide(
+        User* driver,
+        string source,
+        string destination,
+        int seats,
+        double fare
+    ) {
+        return new Ride(
+            1,
+            driver,
+            source,
+            destination,
+            seats,
+            fare
+        );
+    }
+
+    RideRequest* requestRide(
+        User* passenger,
+        Ride* ride
+    ) {
+        return new RideRequest(passenger, ride);
+    }
+};
+
+int main() {
+
+    User driver(1, "Rahul");
+    User passenger(2, "Amit");
+
+    Vehicle car("KA01AB1234", "Toyota");
+    driver.addVehicle(&car);
+
+    RideService service;
+
+    Ride* ride = service.createRide(
+        &driver,
+        "Bangalore",
+        "Airport",
+        3,
+        300
+    );
+
+    RideRequest* request =
+        service.requestRide(&passenger, ride);
+
+    request->accept();
+
+    Telegram notification;
+    notification.send("Ride request accepted!");
+
+    cout << "Passenger: "
+         << passenger.name
+         << " joined the ride.";
+
+    return 0;
+}
